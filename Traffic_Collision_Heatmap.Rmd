@@ -1,0 +1,60 @@
+---
+title: "Bay_area_collision"
+author: "Shayan Farshid"
+date: "2024-04-23"
+output: html_document
+---
+
+```{r}
+install.packages('ggmap')
+library(ggmap)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Google API key
+register_google(key = "AIzaSyD-_6NAm7uBY9KNOJGZLHtPfvTunop589A") 
+
+# Getting a map centered around the coordinates
+map <- get_map(location = c(lon = -122.41, lat = 37.78), 
+               zoom = 12, 
+               source = "google", 
+               maptype = "hybrid")
+
+# Create a base plot with this map
+base_map <- ggmap(map)
+
+file_path <- "Traffic_Crashes_Resulting_in_Injury_20240407.csv"
+
+# Reading the data into dataframe
+traffic_crashes <- read.csv(file_path)
+
+#Data Prep
+severe_crashes <- traffic_crashes %>% 
+  filter(collision_severity == "Injury (Severe)")
+
+traffic_crashes$number_killed <- as.numeric(replace(traffic_crashes$number_killed, is.na(traffic_crashes$number_killed), 0))
+
+weighted_crashes <- traffic_crashes[rep(1:nrow(traffic_crashes), traffic_crashes$number_killed), ]
+
+# Creating the density plot on top of the base map
+density_plot <- base_map +
+  geom_density2d_filled(data = severe_crashes, aes(x=tb_longitude, y=tb_latitude), alpha = 0.27) +
+  geom_density2d_filled(data = weighted_crashes, aes(x=tb_longitude, y=tb_latitude), alpha = 0.27) +
+  theme_minimal() +
+labs(title="Collision Hotspots: Severe Injuries and Fatalities",
+     subtitle="Density of Severe Injuries (red) and Fatalities (blue)",
+     x="Longitude", 
+     y="Latitude") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, size=20, face="bold"),
+        plot.subtitle = element_text(hjust = 0.5, size=14),
+        axis.title = element_text(size=14),
+        legend.title = element_blank(), # Hides the legend title
+        legend.key.size = unit(1.5, "lines")) # Adjust the size of the legend keys
+
+print(density_plot)
+
+##The map indicates a higher concentration of severe injuries and fatalities within the central San Francisco area, suggesting a potential need for increased traffic safety measures in this densely populated region.
+```
