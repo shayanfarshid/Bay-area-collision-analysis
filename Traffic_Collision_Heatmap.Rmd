@@ -14,7 +14,7 @@ library(dplyr)
 
 ```{r}
 # Google API key
-register_google(key = "AIzaSyD-_6NAm7uBY9KNOJGZLHtPfvTunop589A") 
+register_google(key = "*******************************") 
 
 # Getting a map centered around the coordinates
 map <- get_map(location = c(lon = -122.41, lat = 37.78), 
